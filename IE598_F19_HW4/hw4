@@ -1,1 +1,322 @@
-hhh
+import pandas as pd
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# Read in file
+df = pd.read_csv('housing2.csv')
+
+# Get the row and column number
+ROW = df.shape[0]
+COL = df.shape[1]
+print("Number of Rows of Data = " + str(ROW))
+print("Number of Columns of Data = " + str(COL) + '\n')
+
+df.head()
+df.tail()
+
+# Remove missing values
+df=df.dropna()
+
+print("Data types in 'df': ")
+print(df.dtypes, "\n")
+
+print("Missing data in 'df': ")
+print(df.isnull().sum(), "\n")
+
+# Displays the number of times each specific value of 'MEDV' in 'df'
+df['MEDV'].value_counts()
+
+
+# Show graphical summary of the relationships in 'df'
+cols = ['LSTAT', 'INDUS', 'NOX', 'RM', 'AGE']
+sns.pairplot(df[cols], size=2.5)
+plt.tight_layout()
+plt.show()
+
+
+# Respective linear correlations table
+cm = np.corrcoef(df[cols].values.T)
+sns.set(font_scale=2)
+hm = sns.heatmap(cm,cbar=True,annot=True,square=True,fmt='.2f',annot_kws={'size': 15},yticklabels=cols, xticklabels=cols)           
+plt.show()
+
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+_ = sns.swarmplot(x='AGE', y='MEDV', data=df)
+# Label the axes
+_ = plt.xlabel('AGE')
+_ = plt.ylabel('MEDV')
+# Show the plot
+plt.show()
+
+_ = sns.swarmplot(x='RM', y='MEDV', data=df)
+# Label the axes
+_ = plt.xlabel('RM')
+_ = plt.ylabel('MEDV')
+# Show the plot
+plt.show()
+
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+
+# From Chapter 2, Training Simple Machine Learning Algorithms for Classification 
+class LinearRegressionGD(object):
+       def __init__(self, eta=0.001, n_iter=20):
+           self.eta = eta
+           self.n_iter = n_iter
+       def fit(self, X, y):
+           self.w_ = np.zeros(1 + X.shape[1])
+           self.cost_ = []
+           for i in range(self.n_iter):
+               output = self.net_input(X)
+               errors = (y - output)
+               self.w_[1:] += self.eta * X.T.dot(errors)
+               self.w_[0] += self.eta * errors.sum()
+               cost = (errors**2).sum() / 2.0
+               self.cost_.append(cost)
+           return self
+       def net_input(self, X):
+           return np.dot(X, self.w_[1:]) + self.w_[0]
+       def predict(self, X):
+           return self.net_input(X)
+
+df=df.dropna()
+X = df[['RM']].values
+y = df['MEDV'].values
+
+sc_x = StandardScaler()
+sc_y = StandardScaler()
+X_std = sc_x.fit_transform(X)
+y_std = sc_y.fit_transform(y[:, np.newaxis]).flatten()
+lr = LinearRegressionGD()
+lr.fit(X_std, y_std)
+
+plt.plot(X_std, lr.predict(X_std), color='black', lw=2)
+plt.scatter(X_std, y_std, c='steelblue', edgecolor='white', s=70)
+plt.xlabel('Average number of rooms [RM] (standardized)')
+plt.ylabel('Price in $1000s [MEDV] (standardized)')
+plt.show()
+
+print('Slope: %.3f' % lr.w_[1])
+print('Intercept: %.3f' % lr.w_[0])
+
+
+
+# Linear regression
+import pandas as pd
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier 
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import Lasso
+
+# Read in file
+df = pd.read_csv('housing2.csv')
+df.head()
+df.tail()
+
+# Remove missing values
+df=df.dropna()
+
+X = df.iloc[:, :].values
+y = df['MEDV'].values
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state=42)
+
+# Create the regressor
+slr = LinearRegression()
+
+# Fit the regressor to the training data
+slr.fit(X_train, y_train)
+
+# Predict on the test data
+y_train_pred = slr.predict(X_train)
+y_test_pred = slr.predict(X_test)
+
+plt.scatter(y_train_pred, y_train_pred - y_train, c = 'steelblue', 
+            edgecolor = 'white', marker = 'o', s = 35, alpha = 0.9, label = 'Training data')
+plt.scatter(y_test_pred, y_test_pred - y_test, c = 'limegreen', edgecolor = 'white', marker = 's', s = 35, alpha = 0.9, label = 'Test data')
+plt.xlabel('Predicted values')
+plt.ylabel('Residuals')
+plt.legend(loc = 'upper left')
+plt.hlines (y = 0, xmin = -10, xmax = 50, lw = 2, color = 'black')
+plt.xlim([-10, 50])
+plt.show()
+
+# Get coefficients and y intercept
+print("Coefficients :{}".format(slr.coef_[0]))
+print('Intercept: %.3f' % slr.intercept_)
+
+# Compute and print R^2 and RMSE
+print('R^2 train: %.3f, test: %.3f' %(r2_score(y_train, y_train_pred),r2_score(y_test, y_test_pred)))
+rmse = np.sqrt(mean_squared_error(y_train,y_train_pred))
+print("Root Mean Squared Error: {}".format(rmse))
+print('MSE train: %.3f, test: %.3f' % (mean_squared_error(y_train, y_train_pred),mean_squared_error(y_test, y_test_pred)))
+
+
+
+# Ridge regression
+
+# Create a ridge regressor: ridge
+ridge = Ridge(alpha = 7)
+
+# Fit the regressor to the training data
+ridge.fit(X_train, y_train)
+
+y_train_pred = ridge.predict(X_train)
+y_test_pred = ridge.predict(X_test)
+
+plt.scatter(y_train_pred, y_train_pred - y_train, c = 'steelblue', 
+            edgecolor = 'white', marker = 'o', s = 35, alpha = 0.9, label = 'Training data')
+plt.scatter(y_test_pred, y_test_pred - y_test, c = 'limegreen', edgecolor = 'white', marker = 's', s = 35, alpha = 0.9, label = 'Test data')
+plt.xlabel('Predicted values')
+plt.ylabel('Residuals')
+plt.legend(loc = 'upper left')
+plt.hlines (y = 0, xmin = -10, xmax = 50, lw = 2, color = 'black')
+plt.xlim([-10, 50])
+plt.show()
+
+print("Coefficients :{}".format(ridge.coef_[0]))
+print("y_intercept: {}".format(ridge.intercept_))
+
+# Compute and print R^2 and RMSE
+print('R^2 train: %.3f, test: %.3f' %(r2_score(y_train, y_train_pred), r2_score(y_test, y_test_pred)))
+rmse = np.sqrt(mean_squared_error(y_test,y_test_pred))
+print("Root Mean Squared Error: {}".format(rmse))
+print('MSE train: %.3f, test: %.3f' % (mean_squared_error(y_train, y_train_pred),mean_squared_error(y_test, y_test_pred)))
+
+
+
+#Lasso Regression
+
+# Instantiate a lasso regressor: lasso
+lasso = Lasso(alpha = 0.08)
+
+# Fit the regressor to the data
+lasso.fit(X_train, y_train)
+
+y_train_pred = lasso.predict(X_train)
+y_test_pred = lasso.predict(X_test)
+
+plt.scatter(y_train_pred, y_train_pred - y_train, c = 'steelblue', 
+            edgecolor = 'white', marker = 'o', s = 35, alpha = 0.9, label = 'Training data')
+plt.scatter(y_test_pred, y_test_pred - y_test, c = 'limegreen', edgecolor = 'white', marker = 's', s = 35, alpha = 0.9, label = 'Test data')
+plt.xlabel('Predicted values')
+plt.ylabel('Residuals')
+plt.legend(loc = 'upper left')
+plt.hlines (y = 0, xmin = -10, xmax = 50, lw = 2, color = 'black')
+plt.xlim([-10, 50])
+plt.show()
+
+# Compute and print the coefficients
+print("Coefficients :{}".format(lasso.coef_[0]))
+print("y_intercept: {}".format(lasso.intercept_))
+
+# Compute and print R^2 and RMSE
+print('R^2 train: %.3f, test: %.3f' %(r2_score(y_train, y_train_pred), r2_score(y_test, y_test_pred)))
+rmse = np.sqrt(mean_squared_error(y_test,y_test_pred))
+print("Root Mean Squared Error: {}".format(rmse))
+print('MSE train: %.3f, test: %.3f' % (mean_squared_error(y_train, y_train_pred),mean_squared_error(y_test, y_test_pred)))
+
+
+
+# This function plots the R2 score as well as standard error for each alpha:
+def display_plot(cv_scores, cv_scores_std):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(alpha_space, cv_scores)
+    
+    std_error = cv_scores_std/ np.sqrt(10)
+    
+    ax.fill_between(alpha_space, cv_scores + std_error, cv_scores - std_error, alpha = 0.2)
+    ax.set_ylabel('cv error')
+    ax.set_xlabel('Alpha')
+    ax.axhline(np.max(cv_scores), linestyle = '--', color = '.5')
+    ax.set_xlim([alpha_space[0], alpha_space[-1]])
+    ax.set_xscale('log')
+    plt.show()
+
+
+
+X = df.drop('MEDV',axis=1).values
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+
+
+################################
+# Ridge Regression-Alpha test:
+
+# Setup the array of alphas and lists to store scores
+alpha_space = np.logspace(-4, 0, 50)
+ridge_scores = []
+ridge_scores_std = []
+
+# Create a ridge regressor: ridge
+ridge = Ridge(normalize = True)
+for alpha in alpha_space:
+    ridge.alpha = alpha
+    # Perform 10-fold CV: ridge_cv_scores
+    ridge_cv_scores = cross_val_score(ridge, X, y, cv = 10)
+    ridge_scores.append(np.mean(ridge_cv_scores))
+    ridge_scores_std.append(np.std(ridge_cv_scores))
+    
+# Display the plot
+display_plot(ridge_scores, ridge_scores_std)
+
+for alpha in alpha_space:
+    ridge.alpha = alpha
+    # Perform 10-fold CV: ridge_cv_scores
+    ridge_cv_scores = cross_val_score(ridge, X, y, cv = 10)
+    # Find best alpha
+    if(np.mean(ridge_cv_scores) == max(ridge_scores)):
+        print("Best alpha for Ridge is: ", alpha)
+    
+
+################################
+# Lasso Regression - Alpha test:
+
+# Setup the array of alphas and lists to store scores
+alpha_space = np.logspace(-4, 0, 50)
+lasso_scores = []
+lasso_scores_std = []
+
+# Create a ridge regressor: lasso
+lasso = Lasso(normalize = True)
+for alpha in alpha_space:
+    lasso.alpha = alpha
+    # Perform 10-fold CV: lasso_cv_scores
+    lasso_cv_scores = cross_val_score(lasso, features, target, cv = 10)
+    lasso_scores.append(np.mean(lasso_cv_scores))
+    lasso_scores_std.append(np.std(lasso_cv_scores))
+    
+# Display the plot
+display_plot(lasso_scores, lasso_scores_std)
+
+for alpha in alpha_space:
+    lasso.alpha = alpha
+    # Perform 10-fold CV: lasso_cv_scores
+    lasso_cv_scores = cross_val_score(lasso, features, target, cv = 10)
+    # Find best alpha
+    if(np.mean(lasso_cv_scores) == max(lasso_scores)):
+        print("Best alpha for Lasso is: ", alpha)
+        
+
+
+
+print("\nMy name is Xin Wang")
+print("My NetID is: xinw9")
+print("I hereby certify that I have read the University policy on Academic Integrity and that I am not in violation.")
+
