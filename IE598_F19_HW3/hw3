@@ -1,1 +1,113 @@
+import pandas as pd
+import sys
+import numpy as np
+
+
+# Read in file
+df = pd.read_csv('HY_Universe_corporate bond.csv')
+df.head()
+df.tail()
+
+ROW = df.shape[0]
+COL = df.shape[1]
+print("Number of Rows of Data = " + str(ROW))
+print("Number of Columns of Data = " + str(COL) + '\n')
+
+
+# get all data: Issued Amount
+Issued_Amount = df['Issued Amount']
+mean_IA = np.mean(Issued_Amount)
+std_IA = np.std(Issued_Amount)
+
+print("Mean of Issued Amount is " + str(mean_IA))
+print("Standard Deviation of Issued Amount is " + str(std_IA))
+
+percent = []
+for i in range (5):
+    percent.append(np.percentile(Issued_Amount, i*(100)/4))
+print("4 Equal Percentiles are "+ str(percent) + '\n')
+
+
+# get all data: n_trades
+n_trades = df['n_trades']
+mean_n_trades = np.mean(n_trades)
+std_n_trades = np.std(n_trades)
+
+print("Mean of n_trades is " + str(mean_n_trades))
+print("Standard Deviation of n_trades is " + str(std_n_trades))
+
+percent = []
+for i in range (11):
+    percent.append(np.percentile(n_trades, i*(100)/10))
+print("10 Equal Percentiles are "+ str(percent) + '\n')
+
+
+
+import matplotlib.pyplot as plt
+
+def ecdf(data):
+    """Compute ECDF for a one-dimensional array of measurements."""
+    # Number of data points: n
+    n = len(data)
+    # x-data for the ECDF: x
+    x = np.sort(data)
+    # y-data for the ECDF: y
+    y = np.arange(1, len(x)+1) / len(x)
+    return x, y
+
+
+# Compute ECDF for versicolor data: Issued_Amount
+x_Issued_Amount, y_Issued_Amount = ecdf(Issued_Amount)
+
+# Generate plot
+_ = plt.plot(x_Issued_Amount,y_Issued_Amount,marker='.',linestyle='none', color='red')
+
+# Label the axes
+_ = plt.xlabel('Issued Amount')
+_ = plt.ylabel('ECDF')
+
+# Display the plot
+plt.show()
+
+
+# Compute ECDF for versicolor data: n_trades 
+x_n_trades, y_n_trades = ecdf(n_trades)
+
+# Generate plot
+_ = plt.plot(x_n_trades,y_n_trades,marker='.',linestyle='none')
+
+# Label the axes
+_ = plt.xlabel('n_trades')
+_ = plt.ylabel('ECDF')
+
+# Display the plot
+plt.show()
+
+
+var_n_trades = np.var(n_trades)
+print("Variance of n_trades is %.4f" % var_n_trades)
+
+var_Issued_Amount = np.var(Issued_Amount)
+print("Variance of Issued Amount is %.4f" % var_Issued_Amount + '\n')
+
+
+
+LIQ_SCORE = df['LIQ SCORE']
+
+# size of LIQ_SCORE is same as the size of n_trades: we can plot it
+_ = plt.plot(LIQ_SCORE, n_trades, marker = '.', linestyle = 'none')
+_ = plt.xlabel('LIQ SCORE')
+_ = plt.ylabel('n_trades')
+
+cov = np.cov(df['LIQ SCORE'], df['n_trades'])
+print("Covariance between LIQ SCORE and n_trades is %.4f" % cov[0,1])
+corr = np.corrcoef(df['LIQ SCORE'], df['n_trades'])
+print("Correlation between LIQ SCORE and n_trades is %.4f" % corr[0,1] + '\n')
+
+
+
+
+print("My name is Xin Wang")
+print("My NetID is: xinw9")
+print("I hereby certify that I have read the University policy on Academic Integrity and that I am not in violation.")
 
