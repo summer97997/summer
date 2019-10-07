@@ -1,0 +1,119 @@
+import pandas as pd
+
+# Read in file
+df = pd.read_csv('ccdefault.csv')
+df.head()
+#df.shape
+
+
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+
+# Create feature and target arrays
+y = df['DEFAULT'].values
+X = df.drop('DEFAULT', axis=1).values
+print('Class labels:', np.unique(y))
+
+
+# in-sample accuracy:
+def split_set(rs):
+    # Split into training and test set
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=rs, stratify=y)
+
+    # Instantiate dt
+    dt = DecisionTreeClassifier(max_depth=6, random_state=1)
+
+    # Fit dt to the training set
+    dt.fit(X_train, y_train)
+
+    # Predict train set labels
+    y_pred_train = dt.predict(X_train)
+
+    # Compute train set accuracy
+    acc = accuracy_score(y_train, y_pred_train)
+    print("Random state is: ", rs)
+    print("From DecisionTree: Test set accuracy: {:.4f}\n".format(acc))
+    
+    return acc
+
+print("For In-sample:")
+total = [];
+for i in [1,2,3,4,5,6,7,8,9,10]:
+    acc = split_set(i)
+    total.append(acc)
+
+print("In-sample accuracy for 10 different samples: ")
+print("Mean: {:.4f}".format(np.mean(total)))
+print("Standard Deviation : {:.4f}".format(np.std(total)))
+
+
+# out-sample accuracy:
+def split_set(rs):
+    # Split into training and test set
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=rs, stratify=y)
+
+    # Instantiate dt
+    dt = DecisionTreeClassifier(max_depth=6, random_state=1)
+
+    # Fit dt to the training set
+    dt.fit(X_train, y_train)
+
+    # Predict test set labels
+    y_pred_test = dt.predict(X_test)
+
+    # Compute test set accuracy
+    acc = accuracy_score(y_test, y_pred_test)
+    print("Random state is: ", rs)
+    print("From DecisionTree: Test set accuracy: {:.4f}\n".format(acc))
+    
+    return acc
+
+print("For Out-of-sample:")
+total = [];
+for i in [1,2,3,4,5,6,7,8,9,10]:
+    acc = split_set(i)
+    total.append(acc)
+
+print("Out-of-sample accuracy for 10 different samples: ")
+print("Mean: {:.4f}".format(np.mean(total)))
+print("Standard Deviation : {:.4f}".format(np.std(total)))
+
+
+from sklearn.model_selection import cross_val_score
+
+# Split into training and test set
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=1, stratify=y)
+
+# Instantiate dt
+dt = DecisionTreeClassifier(max_depth=4, random_state=1)
+
+# Fit dt to the training set
+dt.fit(X_train, y_train)
+    
+# in-sample accuracy:
+cv_results = cross_val_score(dt, X_train, y_train, cv = 10, n_jobs = -1)
+
+print("For In-sample accuracy for cv (k=10): ")
+for i in cv_results:
+    print("{:.4f}".format(i))
+print("\nMean: {:.4f}".format(np.mean(cv_results)))
+print("Standard Deviation : {:.4f}\n".format(np.std(cv_results)))
+
+
+# Predict test set labels
+y_pred_test = dt.predict(X_test)
+
+# out-sample accuracy:
+acc_out_sample = accuracy_score(y_test, y_pred_test)
+
+print("For Out-of-sample accuracy for cv (k=10): ")
+print("Accuracy: {:.4f}".format(acc_out_sample))
+
+
+
+print("\nMy name is Xin Wang")
+print("My NetID is: xinw9")
+print("I hereby certify that I have read the University policy on Academic Integrity and that I am not in violation.")
