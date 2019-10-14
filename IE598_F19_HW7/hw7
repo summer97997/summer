@@ -1,1 +1,100 @@
-fffff
+import pandas as pd
+
+# Read in file
+df = pd.read_csv('ccdefault.csv')
+df.head()
+#df.shape
+
+
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+# Create feature and target arrays
+y = df['DEFAULT'].values
+X = df.drop('DEFAULT', axis=1).values
+print('Class labels:', np.unique(y))
+
+
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier
+import time
+
+# Split into training and test set
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=1, stratify=y)
+
+def rfc(n):
+    time1 = time.time()
+    
+    # Instantiate rf
+    rf = RandomForestClassifier(n_estimators=n, random_state=1)
+
+    # Fit rf to the training set    
+    rf.fit(X_train, y_train)
+
+    # in-sample accuracy:
+    cv_results = cross_val_score(rf, X_train, y_train, cv = 10, n_jobs = -1)
+    
+    print("\nn_estimators = ", n)
+    #print("For In-sample accuracy for cv (k=10): ")
+    #for i in cv_results:
+    #    print("{:.4f}".format(i))
+    print("\nIn-sample accuracy for cv (k=10): {:.4f}".format(np.mean(cv_results)))
+    print("Standard Deviation : {:.4f}\n".format(np.std(cv_results)))
+
+    # Predict test set labels
+    y_pred_test = rf.predict(X_test)
+
+    # out-sample accuracy:
+    acc_out_sample = accuracy_score(y_test, y_pred_test)
+
+    print("Out-of-sample accuracy for cv (k=10): {:.4f}".format(acc_out_sample))
+    
+    time2 = time.time()
+    print ("Running time is " + str(time2-time1))
+    
+
+rfc(50)
+rfc(100)
+rfc(150)
+rfc(200)
+rfc(250)
+rfc(300)
+
+
+
+# feature importance：
+import matplotlib.pyplot as plt
+
+
+rf.fit(X_train, y_train)
+feature_importances = rf.feature_importances_
+#print(feature_importances)
+
+# feature importances from random forest model
+importances = rf.feature_importances_
+
+# index of greatest to least feature importances
+sorted_index = np.argsort(importances)[::-1]
+    
+# create tick labels
+labels = np.array(feature_names)[sorted_index]
+
+for f in range(X_train.shape[1]):
+    print("%2d) %-*s %f" % (f + 1, 30, df.columns[sorted_index[f]], importances[sorted_index[f]]))
+    
+plt.title('Feature Importance')
+plt.bar(range(X_train.shape[1]), importances[sorted_index], tick_label=labels, align='center')
+# rotate tick labels to vertical
+plt.xticks(rotation=90)
+plt.xlim([-1, X_train.shape[1]])
+plt.tight_layout()
+plt.show()
+
+
+
+print("\nMy name is Xin Wang")
+print("My NetID is: xinw9")
+print("I hereby certify that I have read the University policy on Academic Integrity and that I am not in violation.")
